@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  skill-sync-api:
+    build: .
+    ports:
+      - "8000:8000"
+    container_name: skill-sync-api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: $x{DATABASE_URL_DOCKER}
+    networks:
+      - runestone-net
+
+networks:
+  runestone-net:
+    external: true
