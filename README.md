@@ -7,7 +7,7 @@ Before running the project, ensure you have **Python 3.10+** installed.
 ### 1. Install Python
 
 Download and install the latest Python version from:  
-👉 https://www.python.org/downloads/
+https://www.python.org/downloads/
 
 After installation, verify it using:
 
@@ -20,7 +20,7 @@ If both commands return version numbers, Python and pip are installed successful
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 2. Clone the Repository
 
@@ -130,4 +130,4 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
 5. Start the app with `uvicorn app.main:app --reload`  
 6. Visit the docs at `/docs`
 
-That’s it! Your FastAPI backend is up and running ⚡
+That’s it! Your FastAPI backend is up and running 
