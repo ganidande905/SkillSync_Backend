@@ -4,7 +4,7 @@ from app.db import models
 from datetime import datetime, date
 from sqlalchemy import func
 from app.utils.hashing import Hash
-from app.schemas.user_details import UserCreate
+from app.schemas.user_details import UserCreate, UserLogin
 
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
@@ -19,4 +19,11 @@ def create_user(db: Session, user_in: UserCreate):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    return db_user
+def verify_user(db:Session, user_in:UserLogin):
+    db_user = get_user_by_email(db, user_in.email)
+    if not db_user:
+        return None
+    if not Hash.verify(user_in.password, db_user.hashed_password):
+        return None
     return db_user
