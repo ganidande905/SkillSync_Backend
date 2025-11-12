@@ -1,0 +1,24 @@
+version: "3.9"
+
+networks:
+  proxy:
+    name: proxy
+    driver: bridge
+
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: always
+    command: [] # we will be using traefik.yml here
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro
+      - ./letsencrypt:/letsencrypt
+      - ./rules:/rules:ro
+      - /home/s0lus/reverse-proxy/secret.htpasswd:/secrets/secret.htpasswd:ro
+    networks:
+      - proxy

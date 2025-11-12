@@ -1,0 +1,14 @@
+http:
+  routers:
+    skillapi:
+      rule: "Host(`skillapi.ganidande.com`)"
+      entryPoints: ["websecure"]
+      service: skillapi-svc
+      tls:
+        certResolver: le
+
+  services:
+    skillapi-svc:
+      loadBalancer:
+        servers:
+          - url: "http://skillsync-backend:8000"

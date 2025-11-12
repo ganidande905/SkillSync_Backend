@@ -19,10 +19,10 @@ services:
     env_file:
       - .env
     environment:
-      # always talk to the container name, not localhost
-      DATABASE_URL: postgresql://admin:password@runestone:5432/SkillSync
+    
+      DATABASE_URL: {DATABASE_URL_DOCKER}
     depends_on:
-      - runestone                     # 👈 ensures DB is up before app starts
+      - runestone                  
     ports:
       - "8000:8000"
     networks:
@@ -31,6 +31,7 @@ services:
 networks:
   runestone-net:
     driver: bridge
+  
 
 volumes:
   runestone-data:

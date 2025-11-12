@@ -1,0 +1,14 @@
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`traefik.ganidande.com`)"
+      entryPoints: ["websecure"]
+      middlewares: ["auth"]
+      service: api@internal
+      tls:
+        certResolver: le
+
+  middlewares:
+    auth:
+      basicAuth:
+        usersFile: "/secrets/secret.htpasswd"
