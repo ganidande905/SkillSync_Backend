@@ -5,6 +5,10 @@ from sqlalchemy.orm import Session
 from app.db.db import get_db
 from app.db import models
 from app.db import crud
+from app.schemas.user_interests import (
+    UserInterestOut,
+    UserInterestCreate
+    )
 from app.schemas.user_past_projects import (
     UserPastProjectCreate,
     UserPastProjectOut,
@@ -45,7 +49,7 @@ def list_past_projects(
 @router.post("/{user_id}/skills", response_model=UserSkillOut)
 def create_user_skill(
     user_id: int,
-    skill: UserSkillCreate,   # <-- request model must be Create, not Out
+    skill: UserSkillCreate,  
     db: Session = Depends(get_db),
 ):
     db_skill = crud.add_user_skill(db, user_id, skill)
@@ -61,5 +65,29 @@ def list_user_skills(
     return (
         db.query(models.UserSkill)
         .filter(models.UserSkill.user_id == user_id)
+        .all()
+    )
+    
+# Interests
+
+@router.post("/{user_id}/interest",response_model=UserInterestOut)
+def create_user_interest(
+    user_id: int,
+    interest: UserInterestCreate,
+    db: Session = Depends(get_db),
+):
+    db_interest = crud.add_user_interest(db, user_id , interest)
+    if not db_interest:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_interest
+
+@router.get("/{user_id}/interest", response_model=List[UserInterestOut])
+def list_user_interests(
+    user_id: int,
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(models.UserInterest)
+        .filter(models.UserInterest.user_id == user_id)
         .all()
     )

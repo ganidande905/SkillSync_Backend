@@ -2,6 +2,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from app.db import models
+from app.schemas.user_interests import UserInterestCreate
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
 from app.schemas.user_past_projects import UserPastProjectCreate
@@ -71,3 +72,18 @@ def add_user_skill(db: Session, user_id: int, skill_in: UserSkillCreate) -> Opti
     db.commit()
     db.refresh(user_skill)
     return user_skill
+
+# Interests
+def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) -> Optional[models.UserInterest]:
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+
+    user_interest = models.UserInterest(
+        user_id=user_id,
+        interest_name=interest_in.interest_name,
+    )
+    db.add(user_interest)
+    db.commit()
+    db.refresh(user_interest)
+    return user_interest
