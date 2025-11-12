@@ -1,18 +1,36 @@
-version: "3.9"
-
 services:
+  runestone:
+    image: postgres:14
+    container_name: runestone       
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: SkillSync
+    ports:
+      - "5433:5432"                  
+    volumes:
+      - runestone-data:/var/lib/postgresql/data
+    networks:
+      - runestone-net
+
   skill-sync-api:
     build: .
-    ports:
-      - "8000:8000"
     container_name: skill-sync-api
     env_file:
       - .env
     environment:
-      DATABASE_URL: $x{DATABASE_URL_DOCKER}
+      # always talk to the container name, not localhost
+      DATABASE_URL: postgresql://admin:password@runestone:5432/SkillSync
+    depends_on:
+      - runestone                     # 👈 ensures DB is up before app starts
+    ports:
+      - "8000:8000"
     networks:
       - runestone-net
 
 networks:
   runestone-net:
-    external: true
+    driver: bridge
+
+volumes:
+  runestone-data:

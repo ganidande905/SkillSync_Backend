@@ -35,7 +35,7 @@ class UserPastProject(Base):
     project_title = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
     technologies_used = Column(Text, nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_email = Column(String, ForeignKey("users.email", ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="past_projects")
 
 

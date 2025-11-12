@@ -4,17 +4,12 @@ class UserPastProjectBase(BaseModel):
     project_title: str
     description: str
     technologies_used: str
-class UserPastProject(UserPastProjectBase):
-    user_id: int
-
+    user_email: EmailStr
+class UserPastProjectCreate(UserPastProjectBase):
+    pass
 
 class UserPastProjectOut(UserPastProjectBase):
     id: int
-    
-    user_id: int
-    project_title: str
-    description: str
-    technologies_used: str
 
     class Config:
         orm_mode = True
