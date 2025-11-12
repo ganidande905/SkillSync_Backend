@@ -23,7 +23,6 @@ providers:
 certificatesResolvers:
   le:
     acme:
-      email: ${ACME_EMAIL}  
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web

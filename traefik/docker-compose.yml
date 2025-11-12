@@ -10,7 +10,20 @@ services:
     image: traefik:v2.11
     container_name: traefik
     restart: always
-    command: [] # we will be using traefik.yml here
+    env_file:
+      - .env
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.directory=/rules
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --api.dashboard=true
     ports:
       - "80:80"
       - "443:443"
