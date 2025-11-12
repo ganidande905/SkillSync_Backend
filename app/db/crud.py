@@ -1,35 +1,38 @@
 from typing import Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import exc
 from app.db import models
-from datetime import datetime, date
-from sqlalchemy import func
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
+from app.schemas.user_past_projects import UserPastProjectCreate
+from app.schemas.user_skills import UserSkillCreate
 
+# Lookups 
 
-
-
-def get_user_by_email(db: Session, email: str):
+def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.email == email).first()
 
+def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
+# Users
+def create_user(db: Session, user_in: UserCreate) -> models.User:
+    existing = get_user_by_email(db, user_in.email)
+    if existing:
+        raise ValueError("Email already registered")
 
-
-def create_user(db: Session, user_in: UserCreate):
-    hashed_password = Hash.hash(user_in.password) 
+    hashed_password = Hash.hash(user_in.password)
     db_user = models.User(
         name=user_in.name,
         email=user_in.email,
-        hashed_password=hashed_password
+        hashed_password=hashed_password,
     )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
-
-
-def verify_user(db:Session, user_in:UserLogin):
+def verify_user(db: Session, user_in: UserLogin) -> Optional[models.User]:
     db_user = get_user_by_email(db, user_in.email)
     if not db_user:
         return None
@@ -37,20 +40,35 @@ def verify_user(db:Session, user_in:UserLogin):
         return None
     return db_user
 
-
-
-def add_past_projects(db:Session,user_email:str,user_in: models.UserPastProject):
-    db_user = get_user_by_email(db, user_email)
-    if not db_user:
+# Projects
+def add_past_project(db: Session, user_id: int, project_in: UserPastProjectCreate) -> Optional[models.UserPastProject]:
+    user = get_user_by_id(db, user_id)
+    if not user:
         return None
-    past_project= models.UserPastProject(
-        project_title=user_in.project_title,
-        description=user_in.description,
-        technologies_used=user_in.technologies_used,
-        user_email =user_email
-        
+
+    past_project = models.UserPastProject(
+        user_id=user_id,
+        project_title=project_in.project_title,
+        description=project_in.description,
+        technologies_used=project_in.technologies_used,
     )
     db.add(past_project)
     db.commit()
     db.refresh(past_project)
     return past_project
+
+def add_user_skill(db: Session, user_id: int, skill_in: UserSkillCreate) -> Optional[models.UserSkill]:
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+
+    user_skill = models.UserSkill(
+        user_id=user_id,
+        skill_name=skill_in.skill_name,
+        proficiency_level=skill_in.proficiency_level,
+    )
+    db.add(user_skill)
+    db.commit()
+    db.refresh(user_skill)
+    return user_skill
+

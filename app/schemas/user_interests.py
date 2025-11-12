@@ -1,15 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 class UserInterestBase(BaseModel):
     interest_name: str
-    
+    user_email: EmailStr
 class UserInterestCreate(UserInterestBase):
     user_id: int
     
 class UserInterestOut(UserInterestBase):
     id: int
-    user_id : int
-    interest_name: str
     class Config:
         orm_mode = True
 

@@ -6,7 +6,7 @@ from app.db.db import Base
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
@@ -22,7 +22,7 @@ class User(Base):
 class UserInterest(Base):
     __tablename__ = "user_interests"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     interest_name = Column(String(150), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="interests")
@@ -31,18 +31,18 @@ class UserInterest(Base):
 class UserPastProject(Base):
     __tablename__ = "user_past_projects"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     project_title = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
     technologies_used = Column(Text, nullable=False)
-    user_email = Column(String, ForeignKey("users.email", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", back_populates="past_projects")
 
 
 class UserSkill(Base):
     __tablename__ = "user_skills"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True , autoincrement=True)
     skill_name = Column(String(150), nullable=False)
     proficiency_level = Column(String(50))
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
@@ -52,7 +52,7 @@ class UserSkill(Base):
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     project_name = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
     repository_url = Column(String(300), nullable=False)
@@ -64,7 +64,7 @@ class Project(Base):
 class Team(Base):
     __tablename__ = "teams"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     team_name = Column(String(150), nullable=False)
     project_title = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
@@ -76,7 +76,7 @@ class Team(Base):
 class TeamMember(Base):
     __tablename__ = "team_members"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     role = Column(String(100), nullable=False)
     team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)

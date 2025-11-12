@@ -1,26 +1,54 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.db.db import get_db
-from app.schemas.user_past_projects import UserPastProjectCreate, UserPastProjectOut
+from app.db import models
 from app.db import crud
+from app.schemas.user_past_projects import (
+    UserPastProjectCreate,
+    UserPastProjectOut,
+)
+from app.schemas.user_skills import (
+    UserSkillCreate,
+    UserSkillOut,
+)
 
 router = APIRouter()
 
-@router.post("/pastprojects", response_model=UserPastProjectOut)
+# Past Projects
+@router.post("/{user_id}/past-projects", response_model=UserPastProjectOut)
 def create_past_project(
+    user_id: int,
     project: UserPastProjectCreate,
     db: Session = Depends(get_db),
 ):
-    db_project = crud.add_past_projects(db, project.user_email,project)
+    db_project = crud.add_past_project(db, user_id, project)
     if not db_project:
-        raise HTTPException(status_code=400, detail="Error adding past project (user not found?)")
+        raise HTTPException(status_code=404, detail="User not found")
     return db_project
-@router.get("/pastprojects/{user_email}", response_model=list[UserPastProjectOut])
-def get_past_projects(
-    user_email: str,
+
+
+@router.get("/{user_id}/past-projects", response_model=List[UserPastProjectOut])
+def list_past_projects(
+    user_id: int,
     db: Session = Depends(get_db),
 ):
-    db_user = crud.get_user_by_email(db, user_email)
-    if not db_user:
+    return (
+        db.query(models.UserPastProject)
+        .filter(models.UserPastProject.user_id == user_id)
+        .all()
+    )
+
+
+# Skills
+@router.post("/{user_id}/skills", response_model=UserSkillOut)
+def create_user_skill(
+    user_id: int,
+    skill: UserSkillCreate,   # <-- request model must be Create, not Out
+    db: Session = Depends(get_db),
+):
+    db_skill = crud.add_user_skill(db, user_id, skill)
+    if not db_skill:
         raise HTTPException(status_code=404, detail="User not found")
-    return db.query(crud.models.UserPastProject).filter(crud.models.UserPastProject.user_email == user_email).all()
+    return db_skill

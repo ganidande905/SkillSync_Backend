@@ -22,3 +22,10 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=400, detail="Invalid credentials")
     return db_user
+
+@router.get("/users/lookup")
+def lookup_user_id(email: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"user_id": user.id}
