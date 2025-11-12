@@ -1,4 +1,3 @@
-# Name of the workflow
 name: Create, Publish, and Deploy Docker Image (SkillSync Backend)
 
 on:
@@ -7,11 +6,12 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.imagename.outputs.image }}
     permissions:
       contents: read
       packages: write
@@ -21,15 +21,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Compute lowercase image name
         id: imagename
         run: |
-          # Lowercase the owner/repo
           IMAGE="${GITHUB_REPOSITORY,,}"
-          # Replace underscores with hyphens to be safe for registries
           IMAGE="${IMAGE//_/-}"
-          echo "IMAGE_NAME=$IMAGE" >> "$GITHUB_ENV"
           echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "IMAGE_NAME=$IMAGE" >> "$GITHUB_ENV"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -41,8 +41,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          # Example tags: latest + sha + branch
+          images: ${{ env.REGISTRY }}/${{ steps.imagename.outputs.image }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=branch
@@ -60,7 +59,7 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          subject-name: ${{ env.REGISTRY }}/${{ steps.imagename.outputs.image }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
@@ -78,30 +77,26 @@ jobs:
           script: |
             set -e
 
-            # --- SETTINGS ---
-            # Directory on the VM that contains your docker-compose.yml
             REMOTE_DIR="${{ secrets.SKILLSYNC_REMOTE_DIR }}"
-            # Tag to deploy = branch name; your compose should use TAG from env
+            if [ -z "$REMOTE_DIR" ]; then
+              echo "SKILLSYNC_REMOTE_DIR is not set" >&2
+              exit 1
+            fi
+
             TAG="${{ github.ref_name }}"
-            IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${TAG}"
+            IMAGE="${{ env.REGISTRY }}/${{ needs.build-and-push-image.outputs.image_name }}:${TAG}"
 
             echo "Deploying SkillSync backend to ${REMOTE_DIR} with image ${IMAGE}"
 
-            # 1) Move to project directory
             cd "${REMOTE_DIR}"
 
-            # 2) Log in to GHCR (so the VM can pull private images)
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
-            # 3) Pull the exact tag built for this push
             docker pull "${IMAGE}"
 
-            # 4) Export TAG for docker compose (if your compose uses it in image tag)
             export TAG="${TAG}"
 
-            # 5) Refresh stack
             docker compose pull
             docker compose up -d
 
-            # 6) Optional: prune old images
             docker image prune -f
