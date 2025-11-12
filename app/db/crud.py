@@ -56,7 +56,7 @@ def add_past_project(db: Session, user_id: int, project_in: UserPastProjectCreat
     db.commit()
     db.refresh(past_project)
     return past_project
-
+# Skills
 def add_user_skill(db: Session, user_id: int, skill_in: UserSkillCreate) -> Optional[models.UserSkill]:
     user = get_user_by_id(db, user_id)
     if not user:
@@ -71,4 +71,3 @@ def add_user_skill(db: Session, user_id: int, skill_in: UserSkillCreate) -> Opti
     db.commit()
     db.refresh(user_skill)
     return user_skill
-

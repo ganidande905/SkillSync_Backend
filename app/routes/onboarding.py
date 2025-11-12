@@ -52,3 +52,14 @@ def create_user_skill(
     if not db_skill:
         raise HTTPException(status_code=404, detail="User not found")
     return db_skill
+
+@router.get("/{user_id}/skills", response_model=List[UserSkillOut])
+def list_user_skills(
+    user_id: int,
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(models.UserSkill)
+        .filter(models.UserSkill.user_id == user_id)
+        .all()
+    )
