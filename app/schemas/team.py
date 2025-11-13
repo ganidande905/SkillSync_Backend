@@ -7,11 +7,12 @@ class TeamBase(BaseModel):
     description : str
 
 class TeamCreate(TeamBase):
-    creator_id : int
+    project_id:int
 
 class TeamOut(TeamBase):
     id : int
-    creator_id : int
+    project_id: int
+    creator_id : int | None = None
 
     class Config:
         orm_mode = True

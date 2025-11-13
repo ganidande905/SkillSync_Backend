@@ -59,14 +59,29 @@ class Project(Base):
     description = Column(Text, nullable=False)
     repository_url = Column(String(300), nullable=False)
     progress = Column(Text, nullable=True)
-    
+    requirements = Column(Text, nullable=True) 
     last_commit_message = Column(Text, nullable=True)
     last_commit_sha = Column(String(64), nullable=True)
     last_commit_url = Column(String(500), nullable=True)
-    
+    skill_requirements = relationship(
+        "ProjectSkillRequirement",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     owner = relationship("User", back_populates="projects")
     team = relationship("Team", back_populates="project", uselist=False)
 
+class ProjectSkillRequirement(Base):
+    __tablename__ = "project_skill_requirements"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+
+    skill_name = Column(String(150), nullable=False)
+    min_proficiency_level = Column(String(50), nullable=True) 
+    weight = Column(Integer, nullable=True) 
+
+    project = relationship("Project", back_populates="skill_requirements")
 
 class Team(Base):
     __tablename__ = "teams"

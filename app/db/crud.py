@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from app.db import models
 from app.schemas.project import ProjectCreate
+from app.schemas.team import TeamCreate
 from app.schemas.user_interests import UserInterestCreate
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
@@ -90,20 +91,33 @@ def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) 
     db.refresh(user_interest)
     return user_interest
 
-# projects
-def add_project(db: Session, user_id: int, project_in: ProjectCreate ) -> Optional[models.Project]:
-    user = get_user_by_id(db, user_id)
+def create_project(
+    db: Session,
+    user_id: int,
+    project_in: ProjectCreate,
+) -> Optional[models.Project]:
+    user = db.query(models.User).filter(models.User.id == user_id).first()
     if not user:
         return None
-    
-    user_project = models.Project(
+    project = models.Project(
         user_id=user_id,
         project_name=project_in.project_name,
         description=project_in.description,
         repository_url=project_in.repository_url,
-        
+        requirements=project_in.requirements,
     )
-    db.add(user_project)
+
+    db.add(project)
+    db.flush()  # get project.id without committing yet
+    for req in project_in.skill_requirements or []:
+        db_req = models.ProjectSkillRequirement(
+            project_id=project.id,
+            skill_name=req.skill_name,
+            min_proficiency_level=req.min_proficiency_level,
+            weight=req.weight,
+        )
+        db.add(db_req)
+
     db.commit()
-    db.refresh(user_project)
-    return user_project
+    db.refresh(project)
+    return project

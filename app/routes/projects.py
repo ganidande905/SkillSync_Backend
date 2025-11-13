@@ -18,7 +18,7 @@ def create_project(
     project: ProjectCreate,
     db: Session = Depends(get_db),
 ):
-    db_project = crud.add_project(db, user_id, project)
+    db_project = crud.create_project(db, user_id, project)
     if not db_project:
         raise HTTPException(status_code=404, detail="User not found")
     return db_project
