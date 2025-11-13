@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.db import engine, Base
-from app.routes import auth, onboarding, projects, team, team_invites, team_matching
+from app.routes import auth, onboarding, projects, team, team_invites, team_matching , leaderboard
 
 app = FastAPI(title="SkillSync API")
 
@@ -25,7 +25,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(onboarding.router, prefix="/onboarding", tags=["Onboarding"])
 app.include_router(projects.router, prefix="/projects", tags=["Projects"])
-
+app.include_router(leaderboard.router, prefix="/leaderboard", tags=["Leaderboard"])
 app.include_router(team.router, prefix="/teams", tags=["Teams"])
 app.include_router(team_matching.router, prefix="/projects", tags=["Team Matching"])
 app.include_router(team_invites.router, prefix="/teams", tags=["Team Invites"])

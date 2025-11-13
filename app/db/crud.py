@@ -6,6 +6,7 @@ from app.db import models
 from app.schemas.project import ProjectCreate
 from app.schemas.user_interests import UserInterestCreate
 from app.utils.github import fetch_latest_commit
+from app.utils.github_stats import fetch_repo_stats
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
 from app.schemas.user_past_projects import UserPastProjectCreate
@@ -155,3 +156,30 @@ def get_team(db: Session, team_id: int):
         .filter(models.Team.id == team_id)
         .first()
     )
+    
+async def calculate_user_score(db: Session, user: models.User):
+    engagement_score = (
+        len(user.skills) * 2 +
+        len(user.past_projects) * 5 +
+        len(user.interests) * 1 +
+        len([m for m in user.team_memberships if m.status == "accepted"]) * 3 +
+        len([m for m in user.team_memberships if m.status == "rejected"]) * -1 +
+        len(user.team_memberships) * 3 +
+        len(user.projects) * 10
+    )
+
+    contribution_score = 0
+    for project in user.projects:
+        stats = await fetch_repo_stats(project.repository_url)
+        if not stats:
+            continue
+
+        contribution_score += (
+            stats["commits"] * 1 +
+            stats["prs"] * 5 +
+            stats["issues"] * 1 +
+            stats["stars"] * 10 +
+            stats["forks"] * 3
+        )
+
+    return engagement_score + contribution_score
