@@ -5,6 +5,7 @@ from sqlalchemy import exc
 from app.db import models
 from app.schemas.project import ProjectCreate
 from app.schemas.user_interests import UserInterestCreate
+from app.utils.github import fetch_latest_commit
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
 from app.schemas.user_past_projects import UserPastProjectCreate
@@ -94,20 +95,24 @@ def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) 
     db.refresh(user_interest)
     return user_interest
 
-def create_project(
+async def create_project(
     db: Session,
     user_id: int,
     project_in: ProjectCreate,
 ) -> Optional[models.Project]:
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+    user = get_user_by_id(db, user_id)
     if not user:
         return None
+    commit = await fetch_latest_commit(project_in.repository_url)
     project = models.Project(
         user_id=user_id,
         project_name=project_in.project_name,
         description=project_in.description,
         repository_url=project_in.repository_url,
         requirements=project_in.requirements,
+        last_commit_message=commit["message"] if commit else None,
+        last_commit_sha=commit["sha"] if commit else None,
+        last_commit_url=commit["url"] if commit else None,
     )
 
     db.add(project)

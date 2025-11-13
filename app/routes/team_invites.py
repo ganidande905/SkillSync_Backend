@@ -17,7 +17,7 @@ def get_user_team_invites(
         db.query(models.TeamMember)
         .filter(
             models.TeamMember.user_id == user_id,
-            models.TeamMember.statusin_(["pending","accepted"])
+            models.TeamMember.status.in_(["pending","accepted"])
         )
         .all()
     )
