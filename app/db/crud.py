@@ -2,6 +2,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from app.db import models
+from app.schemas.project import ProjectCreate
 from app.schemas.user_interests import UserInterestCreate
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
@@ -26,6 +27,7 @@ def create_user(db: Session, user_in: UserCreate) -> models.User:
     db_user = models.User(
         name=user_in.name,
         email=user_in.email,
+        university=user_in.university,
         hashed_password=hashed_password,
     )
     db.add(db_user)
@@ -42,16 +44,16 @@ def verify_user(db: Session, user_in: UserLogin) -> Optional[models.User]:
     return db_user
 
 # Projects
-def add_past_project(db: Session, user_id: int, project_in: UserPastProjectCreate) -> Optional[models.UserPastProject]:
+def add_past_project(db: Session, user_id: int, past_project_in: UserPastProjectCreate) -> Optional[models.UserPastProject]:
     user = get_user_by_id(db, user_id)
     if not user:
         return None
 
     past_project = models.UserPastProject(
         user_id=user_id,
-        project_title=project_in.project_title,
-        description=project_in.description,
-        technologies_used=project_in.technologies_used,
+        project_title=past_project_in.project_title,
+        description=past_project_in.description,
+        technologies_used=past_project_in.technologies_used,
     )
     db.add(past_project)
     db.commit()
@@ -87,3 +89,21 @@ def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) 
     db.commit()
     db.refresh(user_interest)
     return user_interest
+
+# projects
+def add_project(db: Session, user_id: int, project_in: ProjectCreate ) -> Optional[models.Project]:
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+    
+    user_project = models.Project(
+        user_id=user_id,
+        project_name=project_in.project_name,
+        description=project_in.description,
+        repository_url=project_in.repository_url,
+        
+    )
+    db.add(user_project)
+    db.commit()
+    db.refresh(user_project)
+    return user_project

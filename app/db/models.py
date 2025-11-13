@@ -10,11 +10,12 @@ class User(Base):
     name = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
-
+    university = Column(String(200), nullable=True)
+    
     interests = relationship("UserInterest", back_populates="user", cascade="all, delete-orphan")
     past_projects = relationship("UserPastProject", back_populates="user", cascade="all, delete-orphan")
     skills = relationship("UserSkill", back_populates="user", cascade="all, delete-orphan")
-    projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan", foreign_keys="Project.user_id")
     teams_created = relationship("Team", back_populates="creator", cascade="all, delete-orphan", foreign_keys="Team.creator_id")
     team_memberships = relationship("TeamMember", back_populates="user", cascade="all, delete-orphan")
 
@@ -53,12 +54,18 @@ class Project(Base):
     __tablename__ = "projects"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     project_name = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
     repository_url = Column(String(300), nullable=False)
-    progress = Column(Integer, nullable=False, default=0)
-    owner_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    progress = Column(Text, nullable=True)
+    
+    last_commit_message = Column(Text, nullable=True)
+    last_commit_sha = Column(String(64), nullable=True)
+    last_commit_url = Column(String(500), nullable=True)
+    
     owner = relationship("User", back_populates="projects")
+    team = relationship("Team", back_populates="project", uselist=False)
 
 
 class Team(Base):
@@ -66,10 +73,11 @@ class Team(Base):
 
     id = Column(Integer, primary_key=True, index=True,autoincrement=True)
     team_name = Column(String(150), nullable=False)
-    project_title = Column(String(200), nullable=False)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
     description = Column(Text, nullable=False)
     creator_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
     creator = relationship("User", back_populates="teams_created")
+    project = relationship("Project", back_populates="team")
     members = relationship("TeamMember", back_populates="team", cascade="all, delete-orphan")
 
 

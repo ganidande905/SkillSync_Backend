@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.db import engine, Base
 from app.db.models import User, UserInterest, UserPastProject, UserSkill, Project, Team, TeamMember
-from app.routes import auth , onboarding
+from app.routes import auth , onboarding, projects
 app = FastAPI(title = "SkillSync API")
 
 
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth.router , prefix="/auth", tags=["Authentication"])
 app.include_router(onboarding.router , prefix="/onboarding", tags=["Onboarding"])
+app.include_router(projects.router,prefix="/projects", tags=["Projects"])
 @app.get("/")
 def read_root():
     return {"message": "Welcome to SkillSync API!"}
