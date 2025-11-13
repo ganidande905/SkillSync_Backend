@@ -1,9 +1,9 @@
 from typing import Optional
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import exc
 from app.db import models
 from app.schemas.project import ProjectCreate
-from app.schemas.team import TeamCreate
 from app.schemas.user_interests import UserInterestCreate
 from app.utils.hashing import Hash
 from app.schemas.user_details import UserCreate, UserLogin
@@ -15,8 +15,11 @@ from app.schemas.user_skills import UserSkillCreate
 def get_user_by_email(db: Session, email: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.email == email).first()
 
-def get_user_by_id(db: Session, user_id: int) -> Optional[models.User]:
-    return db.query(models.User).filter(models.User.id == user_id).first()
+def get_user_by_id(db: Session, user_id: int) -> models.User:
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 # Users
 def create_user(db: Session, user_in: UserCreate) -> models.User:
@@ -121,3 +124,29 @@ def create_project(
     db.commit()
     db.refresh(project)
     return project
+
+def get_team_member(db: Session, team_id: int, user_id: int):
+    return (
+        db.query(models.TeamMember)
+        .filter(
+            models.TeamMember.team_id == team_id,
+            models.TeamMember.user_id == user_id
+        )
+        .first()
+    )
+
+def update_team_member_status(db: Session, team_id: int, user_id: int, status: str):
+    member = get_team_member(db, team_id, user_id)
+    if not member:
+        return None
+    member.status = status
+    db.commit()
+    db.refresh(member)
+    return member
+
+def get_team(db: Session, team_id: int):
+    return (
+        db.query(models.Team)
+        .filter(models.Team.id == team_id)
+        .first()
+    )

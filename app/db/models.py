@@ -104,4 +104,5 @@ class TeamMember(Base):
     team_id = Column(Integer, ForeignKey("teams.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     team = relationship("Team", back_populates="members")
+    status = Column(String(20), nullable=False, default="pending") 
     user = relationship("User", back_populates="team_memberships")

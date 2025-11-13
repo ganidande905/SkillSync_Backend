@@ -1,13 +1,35 @@
 from pydantic import BaseModel
+from typing import List
 
 class TeamMemberBase(BaseModel):
-    team_id: int
+    user_id: int
+    role: str = "member"
+
+
+class TeamMemberOut(BaseModel):
+    id: int
     user_id: int
     role: str
-    
-class TeamMemberCreate(TeamMemberBase):
-    pass
-class TeamMemberOut(TeamMemberBase):
-    id: int
+    status: str
+
     class Config:
         orm_mode = True
+
+
+class TeamBase(BaseModel):
+    team_name: str
+    description: str
+
+
+class TeamOut(TeamBase):
+    id: int
+    project_id: int
+    creator_id: int | None = None
+    members: List[TeamMemberOut] = []
+
+    class Config:
+        orm_mode = True
+        
+        
+class TeamInviteResponse(BaseModel):
+    status: str
