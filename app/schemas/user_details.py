@@ -13,6 +13,7 @@ class UserLogin(BaseModel):
     password: str
 class UserOut(UserBase):
     id : int
+    is_onboarded : bool
     
     class Config:
         orm_mode = True
