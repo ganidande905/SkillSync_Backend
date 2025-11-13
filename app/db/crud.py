@@ -66,20 +66,31 @@ def add_past_project(db: Session, user_id: int, past_project_in: UserPastProject
     db.refresh(past_project)
     return past_project
 # Skills
-def add_user_skill(db: Session, user_id: int, skill_in: UserSkillCreate) -> Optional[models.UserSkill]:
-    user = get_user_by_id(db, user_id)
-    if not user:
-        return None
-
-    user_skill = models.UserSkill(
-        user_id=user_id,
-        skill_name=skill_in.skill_name,
-        proficiency_level=skill_in.proficiency_level,
+def add_user_skill(db: Session, user_id: int, skill: UserSkillCreate):
+    existing = (
+        db.query(models.UserSkill)
+        .filter(
+            models.UserSkill.user_id == user_id,
+            models.UserSkill.skill_name == skill.skill_name,
+        )
+        .first()
     )
-    db.add(user_skill)
+    if existing:
+        existing.proficiency_level = skill.proficiency_level
+        db.add(existing)
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    db_skill = models.UserSkill(
+        user_id=user_id,
+        skill_name=skill.skill_name,
+        proficiency_level=skill.proficiency_level,
+    )
+    db.add(db_skill)
     db.commit()
-    db.refresh(user_skill)
-    return user_skill
+    db.refresh(db_skill)
+    return db_skill
 
 # Interests
 def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) -> Optional[models.UserInterest]:
