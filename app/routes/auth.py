@@ -29,15 +29,3 @@ def lookup_user_id(email: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"user_id": user.id}
-
-@router.post("/{user_id}/complete")
-def complete_onboarding(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    user.is_onboarded = True
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return {"detail": "Onboarding completed", "is_onboarded": user.is_onboarded}
