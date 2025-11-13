@@ -86,6 +86,16 @@ def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) 
     user = get_user_by_id(db, user_id)
     if not user:
         return None
+    existing = (
+        db.query(models.UserInterest)
+        .filter(
+            models.UserInterest.user_id == user_id,
+            models.UserInterest.interest_name == interest_in.interest_name,
+        )
+        .first()
+    )
+    if existing:
+        return existing
 
     user_interest = models.UserInterest(
         user_id=user_id,

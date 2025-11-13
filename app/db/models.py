@@ -22,7 +22,9 @@ class User(Base):
 
 class UserInterest(Base):
     __tablename__ = "user_interests"
-
+    __table_args__ = (
+        UniqueConstraint("user_id", "interest_name", name="uq_user_interest_user_interest_name"),
+    )
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     interest_name = Column(String(150), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
