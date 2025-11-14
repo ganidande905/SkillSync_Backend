@@ -33,7 +33,9 @@ class UserInterest(Base):
 
 class UserPastProject(Base):
     __tablename__ = "user_past_projects"
-
+    __table_args__ = (
+        UniqueConstraint("user_id", "project_title", name="uq_user_past_project_user_project_title"),
+    )
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     project_title = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)

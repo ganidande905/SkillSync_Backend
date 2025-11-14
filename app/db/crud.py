@@ -54,6 +54,21 @@ def add_past_project(db: Session, user_id: int, past_project_in: UserPastProject
     user = get_user_by_id(db, user_id)
     if not user:
         return None
+    existing = (
+        db.query(models.UserPastProject)
+        .filter(
+            models.UserPastProject.user_id == user_id,
+            models.UserPastProject.project_title == past_project_in.project_title,
+        )
+        .first()
+    )
+    if existing:
+        existing.description = past_project_in.description
+        existing.technologies_used = past_project_in.technologies_used
+        db.add(existing)
+        db.commit()
+        db.refresh(existing)
+        return existing
 
     past_project = models.UserPastProject(
         user_id=user_id,
@@ -116,6 +131,15 @@ def add_user_interest(db:Session, user_id:int, interest_in: UserInterestCreate) 
     db.commit()
     db.refresh(user_interest)
     return user_interest
+def _auto_weight_for_level(level: str) -> int:
+    # tune however you like
+    level = (level or "").lower()
+    if level == "advanced":
+        return 10
+    if level == "intermediate":
+        return 8
+    return 5 
+
 
 async def create_project(
     db: Session,
@@ -125,7 +149,9 @@ async def create_project(
     user = get_user_by_id(db, user_id)
     if not user:
         return None
+
     commit = await fetch_latest_commit(project_in.repository_url)
+
     project = models.Project(
         user_id=user_id,
         project_name=project_in.project_name,
@@ -138,20 +164,20 @@ async def create_project(
     )
 
     db.add(project)
-    db.flush()  # get project.id without committing yet
+    db.flush()  
+
     for req in project_in.skill_requirements or []:
         db_req = models.ProjectSkillRequirement(
             project_id=project.id,
             skill_name=req.skill_name,
             min_proficiency_level=req.min_proficiency_level,
-            weight=req.weight,
+            weight=req.weight if req.weight is not None else _auto_weight_for_level(req.min_proficiency_level),
         )
         db.add(db_req)
 
     db.commit()
     db.refresh(project)
     return project
-
 def get_team_member(db: Session, team_id: int, user_id: int):
     return (
         db.query(models.TeamMember)
