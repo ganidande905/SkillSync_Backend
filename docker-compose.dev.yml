@@ -1,17 +1,4 @@
 services:
-  runestone:
-    image: postgres:14
-    container_name: runestone       
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: SkillSync
-    ports:
-      - "5433:5432"                  
-    volumes:
-      - runestone-data:/var/lib/postgresql/data
-    networks:
-      - runestone-net
 
   skill-sync-api:
     build: .
@@ -19,19 +6,13 @@ services:
     env_file:
       - .env
     environment:
-    
-      DATABASE_URL: ${DATABASE_URL_DOCKER}
-    depends_on:
-      - runestone                  
+      DATABASE_URL: ${DATABASE_URL_DOCKER}           
     ports:
       - "8000:8000"
     networks:
       - runestone-net
-
 networks:
   runestone-net:
-    driver: bridge
+    external: true
+    name : runestone-net
   
-
-volumes:
-  runestone-data:
