@@ -77,9 +77,9 @@ jobs:
           script: |
             set -e
 
-            REMOTE_DIR="${{ secrets.SKILLSYNC_REMOTE_DIR }}"
+            REMOTE_DIR="${{ secrets.DIR }}"
             if [ -z "$REMOTE_DIR" ]; then
-              echo "SKILLSYNC_REMOTE_DIR is not set" >&2
+              echo "DIR is not set" >&2
               exit 1
             fi
 
@@ -96,7 +96,6 @@ jobs:
 
             export TAG="${TAG}"
 
-            docker compose pull
-            docker compose up -d
-
+            docker compose -f skillsync-backend.yml pull
+            docker compose -f skillsync-backend.yml up -d
             docker image prune -f
